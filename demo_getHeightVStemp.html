@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script src="/const.js" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <div style="width:600px;">
+        <canvas id="heyChart"></canvas>
+    </div>
+    <script>
+        var requestURL = 'https://kaibao.tzml-lab.tw/api/latest-sensor?token=4a85c05b33b233671cb60ae8b267255ebab63678';
+        var requestURL2 = 'https://kaibao.tzml-lab.tw/api/sensor-threshhold?token=4a85c05b33b233671cb60ae8b267255ebab63678';
+        var request2 = new XMLHttpRequest();
+        var tempThreshhold = 0;
+        request2.open('GET', requestURL2);
+        request2.responseType = 'json';
+        request2.send();
+        request2.onload = function() {
+            var jsonObj2 = request2.response;
+            tempThreshhold = jsonObj2.result.temp_threshhold;
+            console.log(tempThreshhold);
+        }
+
+        var request = new XMLHttpRequest();
+        request.open('GET', requestURL);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {
+            var jsonObj = request.response;
+            var tempData = [];
+            var hiData = [];
+            var timeData = [];
+            var tempHoldData = [];
+            for(var i = 0; i < jsonObj.result.length;i++)
+            {
+                let tempList = jsonObj.result[i].sensorTemperature;
+                let timeList = jsonObj.result[i].created;
+                tempHoldData.push(tempThreshhold);
+                tempData.push(tempList);
+                hiData.push(15);
+                timeData.push(timeList[11]+timeList[12]+timeList[13]+timeList[14]+timeList[15]+timeList[16]+timeList[17]+timeList[18]);
+            }
+            console.log(tempHoldData);
+            var ctx = document.getElementById("heyChart");
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data:{
+                    labels: timeData,
+                    datasets:[{
+                        type: 'line',
+                        label: '臨界值',
+                        xAxesID: 'x-axis-1',
+                        yAxesID: 'y-axis-1',
+                        backgroundColor: 'red',
+                        borderColor: 'red',
+                        fill: false,
+                        data: tempHoldData,
+                        pointStyle: 'dash',
+                        
+                    },{ 
+                        type:'line',
+                        label: '現時溫度',
+                        xAxesID: 'x-axis-1',
+                        yAxesID: 'y-axis-1',
+                        backgroundColor: 'gray',
+                        borderColor: 'gray',
+                        fill: false,
+                        data: tempData,
+                    },{
+                        type:'bar',
+                        label: '現時高度',
+                        xAxesID: 'x-axis-1',
+                        yAxesID: 'y-axis-2',
+                        backgroundColor: 'green',
+                        borderColor: 'green',
+                        fill: false,
+                        data: hiData,
+                        
+                    }]
+                } ,
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: '最近高度vs.溫度'
+                    },
+                    tooltips: {
+                        mode: 'index'
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel:{
+                                display: true,
+                                labelString:'時間',   
+                            },
+                            barPercentage: 0.2
+                        }],
+                        yAxes: [{
+                            // gridLines: {
+                            //     drawBorder: false,
+                            //     color: ['pink', 'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple']
+                            // },
+                                display: true,
+                                position: 'left',
+                                id: 'y-axis-1',
+                                scaleLabel:{
+                                    display: true,
+                                    labelString:'溫度 (℃)'
+                                },
+                                ticks: {
+                                    min: 0,
+                                    max: 40,
+                                    stepSize: 5
+                                }
+                            },{
+                                gridLines: {
+                                    color: 'green'
+                                },
+                                display: true,
+                                position: 'right',
+                                id: 'y-axis-2',
+                                scaleLabel:{
+                                    display: true,
+                                    labelString:'高度'
+                                },
+                                ticks: {
+                                    min: 0,
+                                    max: 30,
+                                    stepSize: 5
+                                }
+                        }]
+                    }
+                }
+                
+            });
+             
+        }   
+                              
+    </script>
+
+</body>
+</html>
